@@ -15,7 +15,7 @@ class Role(Enum):
     TEACHER = 2
 
 @dataclass
-class User(Role):
+class User:
     id : int
     email : str
     hased_password : str
