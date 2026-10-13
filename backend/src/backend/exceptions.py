@@ -1,0 +1,2 @@
+class SoldOutError(Exception):
+    pass
