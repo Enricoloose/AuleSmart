@@ -1,2 +1,2 @@
-class SoldOutError(Exception):
+class OverbookingError(Exception):
     pass
