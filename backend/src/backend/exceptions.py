@@ -3,3 +3,6 @@ class OverbookingError(Exception):
 
 class DoubleBookingError(Exception):
     pass
+
+class UnauthorizeRoleError(Exception):
+    pass

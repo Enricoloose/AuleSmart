@@ -1,7 +1,7 @@
 import pytest
 import datetime
 from backend.models import Room,Lesson,User,Role
-from backend.exceptions import OverbookingError,DoubleBookingError
+from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError
 from backend.reservation import BookingService
 
 def test_success_booking_to_lesson():
@@ -15,7 +15,7 @@ def test_success_booking_to_lesson():
 
     service = BookingService(room=room,lesson=lesson)
     
-    service.book(student_id=student_1.id)
+    service.book(student=student_1)
 
     assert len(service.reservation) == 1
     
@@ -29,12 +29,12 @@ def test_booking_to_full_lesson():
 
     service = BookingService(room,lesson)
 
-    service.book(student_id=student_1.id)
+    service.book(student=student_1)
     
     student_2 = User(2,"prova@gmail.com","psw","mario","rossi",Role.STUDENT)
 
     with pytest.raises(OverbookingError):
-        service.book(student_id=student_2.id)
+        service.book(student=student_2)
 
 
 def test_double_booking_to_lesson():
@@ -47,10 +47,14 @@ def test_double_booking_to_lesson():
 
     service = BookingService(room,lesson)
 
-    service.book(student_id=student_1.id)
+    service.book(student=student_1)
 
     with pytest.raises(DoubleBookingError):
-        service.book(student_id=student_1.id)
+        service.book(student=student_1)
+
+
+
+
 
 
 
