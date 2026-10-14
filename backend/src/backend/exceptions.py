@@ -6,3 +6,6 @@ class DoubleBookingError(Exception):
 
 class UnauthorizeRoleError(Exception):
     pass
+
+class ExpiredLessonError(Exception):
+    pass

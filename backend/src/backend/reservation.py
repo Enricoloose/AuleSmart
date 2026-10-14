@@ -1,8 +1,7 @@
 from backend.models import Room,Lesson,Reservation,User,Role
 from datetime import datetime
-from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError
-TEACHER = 2
-STUDENT = 1
+from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError
+
 
 class BookingService:
     def __init__(self,room: Room, lesson: Lesson, reservation: list[Reservation] | None = None) -> None:
@@ -14,6 +13,10 @@ class BookingService:
 
         if(student.role != Role.STUDENT):
             raise UnauthorizeRoleError("Non è possibile registrarsi per il tipo di account")
+
+        current_datetime = datetime.now()
+        if(current_datetime >= self.lesson.start_time):
+            raise ExpiredLessonError("La lezione è già iniziata")
 
         if(len(self.reservation)>=self.room.capacity):
             raise OverbookingError("Posti esauriti per questa lezione")
