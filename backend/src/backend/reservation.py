@@ -12,15 +12,15 @@ class BookingService:
 
     def book(self, student : User) -> Reservation:
 
+        if(student.role != Role.STUDENT):
+            raise UnauthorizeRoleError("Non è possibile registrarsi per il tipo di account")
+
         if(len(self.reservation)>=self.room.capacity):
             raise OverbookingError("Posti esauriti per questa lezione")
 
         for res in self.reservation:
             if(res.student_id == student.id):
                 raise DoubleBookingError("Utente già iscritto per questa lezione")
-
-        if(student.role == Role.TEACHER):
-            raise UnauthorizeRoleError("Non è possibile registrarsi per il tipo di account")
 
         new_reservation = Reservation(id = len(self.reservation)+1, student_id = student.id, lesson_id = self.lesson.id, created_at=datetime.now())
 
