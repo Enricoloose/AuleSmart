@@ -14,7 +14,7 @@ def test_success_booking_to_lesson():
 
     service = BookingService(room=room,lesson=lesson)
     
-    service.book(lesson_id=lesson.id,student_id=student_1.id)
+    service.book(student_id=student_1.id)
 
     assert len(service.reservation) == 1
 
@@ -27,11 +27,11 @@ def test_booking_to_full_lesson():
 
     service = BookingService(room,lesson)
 
-    service.book(lesson_id=lesson.id,student_id=student_1.id)
+    service.book(student_id=student_1.id)
     
     student_2 = User(2,"prova@gmail.com","psw","mario","rossi",Role.STUDENT)
 
     with pytest.raises(OverbookingError):
-        service.book(lesson_id=lesson.id,student_id=student_1.id)
+        service.book(student_id=student_2.id)
 
     
