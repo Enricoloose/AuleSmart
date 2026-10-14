@@ -10,14 +10,20 @@ def not_started_lesson() -> Lesson:
     end_time = datetime.now() + timedelta(hours=2)
     return Lesson(1,"Deep Learning",start_time,end_time,1,1)
 
-def test_success_booking_to_lesson(not_started_lesson):
+@pytest.fixture
+def room_with_standard_capacity() -> Room:
+    room_id = 1
+    room_name = "Aula1"
+    room_capacity = 50
+    return Room(id=room_id, name=room_name, capacity=room_capacity)
+
+def test_success_booking_to_lesson(not_started_lesson,room_with_standard_capacity):
 
     #la capacità dell'aula è un valore statico, dopo per calcolare la capacità rimanente controllo le iscrizioni con la capacità dell'aula
-    room = Room(1,"Aula1",5)
 
     student_1 = User(1,"prova@gmail.com","psw","enrico","danieli",Role.STUDENT)
 
-    service = BookingService(room=room,lesson=not_started_lesson)
+    service = BookingService(room=room_with_standard_capacity,lesson=not_started_lesson)
     
     service.book(student=student_1)
 
@@ -26,8 +32,6 @@ def test_success_booking_to_lesson(not_started_lesson):
 
 def test_booking_to_full_lesson(not_started_lesson):
     room = Room(1,"Aula1",1)
-    
-    lesson = Lesson(1,"Deep Learning",datetime(2026,10,13,),datetime(2026,10,13),1,1)
 
     student_1 = User(1,"prova@gmail.com","psw","enrico","danieli",Role.STUDENT)
 
@@ -41,36 +45,27 @@ def test_booking_to_full_lesson(not_started_lesson):
         service.book(student=student_2)
 
 
-def test_double_booking_to_lesson(not_started_lesson):
-
-    room = Room(1,"Aula",50)
-
-    lesson = Lesson(1,"Deep Learning",datetime(2026,10,13,),datetime(2026,10,13),1,1)
+def test_double_booking_to_lesson(not_started_lesson, room_with_standard_capacity):
 
     student_1 = User(1,"prova@gmail.com","psw","enrico","danieli",Role.STUDENT)
 
-    service = BookingService(room=room,lesson=not_started_lesson)
+    service = BookingService(room=room_with_standard_capacity,lesson=not_started_lesson)
 
     service.book(student=student_1)
 
     with pytest.raises(DoubleBookingError):
         service.book(student=student_1)
 
-def test_teacher_booking_to_lesson(not_started_lesson):
-
-    room = Room(1,"Aula",50)
-
-    lesson = Lesson(1,"Deep Learning",datetime(2026,10,13,),datetime(2026,10,13),1,1)
+def test_teacher_booking_to_lesson(not_started_lesson, room_with_standard_capacity):
 
     teacher = User(1,"prova@gmail.com","psw","enrico","danieli",Role.TEACHER)
 
-    service = BookingService(room=room,lesson=not_started_lesson)
+    service = BookingService(room=room_with_standard_capacity,lesson=not_started_lesson)
 
     with pytest.raises(UnauthorizeRoleError):
         service.book(student=teacher)
 
-def test_booking_to_started_lesson():
-    room = Room(1,"Aula",50)
+def test_booking_to_started_lesson(room_with_standard_capacity):
 
     #Mi serve creare una lezione nel passato 
     start_time = datetime.now() - timedelta(hours=1)
@@ -80,7 +75,7 @@ def test_booking_to_started_lesson():
 
     student_1 = User(1,"prova@gmail.com","psw","enrico","danieli",Role.STUDENT)
 
-    service = BookingService(room,lesson)
+    service = BookingService(room=room_with_standard_capacity,lesson=lesson)
 
     with pytest.raises(ExpiredLessonError):
         service.book(student_1)
