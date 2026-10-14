@@ -52,6 +52,19 @@ def test_double_booking_to_lesson():
     with pytest.raises(DoubleBookingError):
         service.book(student=student_1)
 
+def test_teacher_booking_to_lesson():
+
+    room = Room(1,"Aula",50)
+
+    lesson = Lesson(1,"Deep Learning",datetime.datetime(2026,10,13,),datetime.datetime(2026,10,13),1,1)
+
+    teacher = User(1,"prova@gmail.com","psw","enrico","danieli",Role.TEACHER)
+
+    service = BookingService(room,lesson)
+
+    with pytest.raises(UnauthorizeRoleError):
+        service.book(student=teacher)
+
 
 
 

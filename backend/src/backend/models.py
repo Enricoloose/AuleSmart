@@ -9,7 +9,6 @@ class Room:
     capacity : int
 
 
-@dataclass (frozen=True)
 class Role(Enum):
     STUDENT = 1
     TEACHER = 2

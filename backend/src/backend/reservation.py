@@ -1,4 +1,4 @@
-from backend.models import Room,Lesson,Reservation,User
+from backend.models import Room,Lesson,Reservation,User,Role
 from datetime import datetime
 from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError
 TEACHER = 2
@@ -19,7 +19,7 @@ class BookingService:
             if(res.student_id == student.id):
                 raise DoubleBookingError("Utente già iscritto per questa lezione")
 
-        if(student.role == TEACHER):
+        if(student.role == Role.TEACHER):
             raise UnauthorizeRoleError("Non è possibile registrarsi per il tipo di account")
 
         new_reservation = Reservation(id = len(self.reservation)+1, student_id = student.id, lesson_id = self.lesson.id, created_at=datetime.now())
