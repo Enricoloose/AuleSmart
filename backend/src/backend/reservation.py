@@ -1,6 +1,6 @@
 from backend.models import Room,Lesson,Reservation
 from datetime import datetime
-from backend.exceptions import OverbookingError
+from backend.exceptions import OverbookingError,DoubleBookingError
 
 class BookingService:
     def __init__(self,room: Room, lesson: Lesson, reservation: list[Reservation] | None = None) -> None:
@@ -12,6 +12,10 @@ class BookingService:
 
         if(len(self.reservation)>=self.room.capacity):
             raise OverbookingError("Posti esauriti per questa lezione")
+
+        for res in self.reservation:
+            if(res.student_id == student_id):
+                raise DoubleBookingError("Utente già iscritto per questa lezione")
 
         new_reservation = Reservation(id = len(self.reservation)+1, student_id = student_id, lesson_id = self.lesson.id, created_at=datetime.now())
 

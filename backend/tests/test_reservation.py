@@ -1,12 +1,13 @@
 import pytest
 import datetime
 from backend.models import Room,Lesson,User,Role
-from backend.exceptions import OverbookingError
+from backend.exceptions import OverbookingError,DoubleBookingError
 from backend.reservation import BookingService
 
 def test_success_booking_to_lesson():
 
-    room = Room(1,"Aula1",1)
+    #la capacità dell'aula è un valore statico, dopo per calcolare la capacità rimanente controllo le iscrizioni con la capacità dell'aula
+    room = Room(1,"Aula1",5)
 
     lesson = Lesson(1,"Deep Learning",datetime.datetime(2026,10,13,),datetime.datetime(2026,10,13),1,1)
 
@@ -17,6 +18,7 @@ def test_success_booking_to_lesson():
     service.book(student_id=student_1.id)
 
     assert len(service.reservation) == 1
+    
 
 def test_booking_to_full_lesson():
     room = Room(1,"Aula1",1)
@@ -33,5 +35,23 @@ def test_booking_to_full_lesson():
 
     with pytest.raises(OverbookingError):
         service.book(student_id=student_2.id)
+
+
+def test_double_booking_to_lesson():
+
+    room = Room(1,"Aula",50)
+
+    lesson = Lesson(1,"Deep Learning",datetime.datetime(2026,10,13,),datetime.datetime(2026,10,13),1,1)
+
+    student_1 = User(1,"prova@gmail.com","psw","enrico","danieli",Role.STUDENT)
+
+    service = BookingService(room,lesson)
+
+    service.book(student_id=student_1.id)
+
+    with pytest.raises(DoubleBookingError):
+        service.book(student_id=student_1.id)
+
+
 
     
