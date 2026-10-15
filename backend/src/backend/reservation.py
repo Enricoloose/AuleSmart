@@ -1,6 +1,6 @@
 from backend.models import Room,Lesson,Reservation,User,Role
 from datetime import datetime,timedelta
-from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError,DeleteError
+from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError,DeleteError,ReservationNotFoundError
 
 
 class BookingService:
@@ -40,6 +40,8 @@ class BookingService:
             if(res.student_id == student_id):
                 self.reservation.remove(res)
                 return
+
+        raise ReservationNotFoundError("Prenotazione non trovata")
 
 
             

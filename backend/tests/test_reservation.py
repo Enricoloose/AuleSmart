@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime,timedelta
 from backend.models import Room,Lesson,User,Role
-from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError,DeleteError
+from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError,DeleteError,ReservationNotFoundError
 from backend.reservation import BookingService
 
 @pytest.fixture
@@ -107,6 +107,14 @@ def test_success_to_delete_reservation(room_with_standard_capacity,not_started_l
     service.delete(standard_student.id)
 
     assert len(service.reservation) == 0
+
+def test_delete_non_existing_reservation(room_with_standard_capacity,not_started_lesson,standard_student):
+    
+    service = BookingService(room=room_with_standard_capacity,lesson=not_started_lesson)
+
+    with pytest.raises(ReservationNotFoundError):
+        service.delete(standard_student.id)
+
 
 
 

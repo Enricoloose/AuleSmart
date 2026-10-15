@@ -12,3 +12,6 @@ class ExpiredLessonError(Exception):
 
 class DeleteError(Exception):
     pass
+
+class ReservationNotFoundError(Exception):
+    pass
