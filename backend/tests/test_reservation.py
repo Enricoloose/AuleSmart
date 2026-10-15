@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime,timedelta
 from backend.models import Room,Lesson,User,Role
-from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError
+from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError,DeleteError
 from backend.reservation import BookingService
 
 @pytest.fixture
@@ -77,14 +77,36 @@ def test_booking_to_started_lesson(room_with_standard_capacity,standard_student)
     start_time = datetime.now() - timedelta(hours=1)
     end_time = datetime.now()
     
-    past_lesson = Lesson(id=1,name="Deep Learning",start_time=start_time,end_time=end_time,teacher_id=1,room_id=1)
+    past_lesson = Lesson(id=1,name="Deep Learning",start_time=start_time,end_time=end_time,teacher_id=1,room_id=room_with_standard_capacity.id)
 
     service = BookingService(room=room_with_standard_capacity,lesson=past_lesson)
 
     with pytest.raises(ExpiredLessonError):
         service.book(student=standard_student)
 
+def test__fail_to_delete_reservation(room_with_standard_capacity,standard_student):
 
+    #creo una lezione che avverrà tra 15 minuti
+    start_time = datetime.now() + timedelta(minutes=15)
+    end_time = datetime.now() + timedelta(hours=2)
+
+    future_lesson = Lesson(id=1,name="Deep Learning",start_time=start_time,end_time=end_time,teacher_id=1,room_id=room_with_standard_capacity.id)
+
+    service = BookingService(room=room_with_standard_capacity,lesson=future_lesson)
+
+    with pytest.raises(DeleteError):
+        service.delete(standard_student.id)
+
+
+def test_success_to_delete_reservation(room_with_standard_capacity,not_started_lesson,standard_student):
+
+    service = BookingService(room=room_with_standard_capacity,lesson=not_started_lesson)
+
+    service.book(standard_student)
+
+    service.delete(standard_student.id)
+
+    assert len(service.reservation) == 0
 
 
 

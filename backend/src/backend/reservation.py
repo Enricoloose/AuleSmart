@@ -1,6 +1,6 @@
 from backend.models import Room,Lesson,Reservation,User,Role
-from datetime import datetime
-from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError
+from datetime import datetime,timedelta
+from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError,DeleteError
 
 
 class BookingService:
@@ -29,5 +29,17 @@ class BookingService:
 
         self.reservation.append(new_reservation)
         return new_reservation
+
+    def delete(self,student_id : int) -> None:
+        
+        current_datetime = datetime.now()
+        if(current_datetime > self.lesson.start_time - timedelta(minutes=30)):
+            raise DeleteError("Non puoi cancellare la prenotazione")
+
+        for res in self.reservation:
+            if(res.student_id == student_id):
+                self.reservation.remove(res)
+                return
+
 
             
