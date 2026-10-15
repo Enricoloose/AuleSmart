@@ -10,7 +10,7 @@ class UnauthorizeRoleError(Exception):
 class ExpiredLessonError(Exception):
     pass
 
-class DeleteError(Exception):
+class DeleteReservationError(Exception):
     pass
 
 class ReservationNotFoundError(Exception):
