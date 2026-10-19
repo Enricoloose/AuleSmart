@@ -10,6 +10,9 @@ class LessonService:
 
     def create(self, teacher : User, lesson : Lesson) -> Lesson:
 
+        if(teacher.role != Role.TEACHER):
+            raise UnauthorizeRoleError("Non è possibile creare una lezione con questo tipo di account")
+
         new_lesson = Lesson(id=len(self.existing_lesson)+1, name=lesson.name,start_time=lesson.start_time, end_time=lesson.end_time,teacher_id=teacher.id, room_id=self.room.id)
         self.existing_lesson.append(new_lesson)
 
