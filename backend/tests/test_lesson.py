@@ -15,14 +15,11 @@ def standard_teacher() -> User:
     role = Role.TEACHER
     return User(id=id,email=email,hased_password=hased_password,name=name,surname=surname,role=role)
 
-def test_success_to_create_lesson(room_with_standard_capacity):
+def test_success_to_create_lesson(standard_teacher,room_with_standard_capacity,not_started_lesson):
 
-    teacher = User(id=1,email="prova@gmail.com",hased_password="psw",name="enrico",surname="danieli",role=Role.TEACHER)
-    lesson = Lesson(1,"DeepLearning",datetime.now(),datetime.now(),teacher_id=teacher.id,room_id=room_with_standard_capacity.id)
+    service = LessonService(room=room_with_standard_capacity,user=standard_teacher)
 
-    service = LessonService(room=room_with_standard_capacity,user=teacher)
-
-    service.create(teacher=teacher, lesson=lesson)
+    service.create(teacher=standard_teacher, lesson=not_started_lesson)
 
     assert len(service.existing_lesson) == 1
 
