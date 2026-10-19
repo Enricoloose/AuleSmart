@@ -84,7 +84,7 @@ def test_booking_to_started_lesson(room_with_standard_capacity,standard_student)
     with pytest.raises(ExpiredLessonError):
         service.book(student=standard_student)
 
-def test__fail_to_delete_reservation(room_with_standard_capacity,standard_student):
+def test_fail_to_delete_reservation(room_with_standard_capacity,standard_student):
 
     #creo una lezione che avverrà tra 15 minuti
     start_time = datetime.now() + timedelta(minutes=15)
