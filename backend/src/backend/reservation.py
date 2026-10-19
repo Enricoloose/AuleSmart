@@ -1,6 +1,6 @@
 from backend.models import Room,Lesson,Reservation,User,Role
 from datetime import datetime,timedelta
-from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError,DeleteReservationError,ReservationNotFoundError
+from backend.exceptions.booking_exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError,DeleteReservationError,ReservationNotFoundError
 
 
 class BookingService:
