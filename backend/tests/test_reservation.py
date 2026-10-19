@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime,timedelta
 from backend.models import Room,Lesson,User,Role
-from backend.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError,DeleteReservationError,ReservationNotFoundError
+from backend.exceptions.exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError,DeleteReservationError,ReservationNotFoundError
 from backend.reservation import BookingService
 
 @pytest.fixture
