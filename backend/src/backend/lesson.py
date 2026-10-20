@@ -5,14 +5,13 @@ from datetime import datetime, timedelta
 
 MAX_LESSION_SLOT = timedelta(hours=2,minutes=30)
 
-#gestisce le lezione per l'aula
+#gestisce le lezione per tutte le aule, così posso fare il confronto se un docente prenota contemporanemente due aule
 class LessonService:
-    def __init__(self,room: Room, user: User, existing_lesson: list[Lesson] | None = None) -> None:
-        self.room = room
+    def __init__(self, user: User, existing_lesson: list[Lesson] | None = None) -> None:
         self.user = user
         self.existing_lesson = existing_lesson if existing_lesson is not None else []
 
-    def create(self, teacher : User, lesson : Lesson) -> Lesson:
+    def create(self, teacher : User, lesson : Lesson, room_id : int) -> Lesson:
 
         if(teacher.role != Role.TEACHER):
             raise UnauthorizeRoleError("Non è possibile creare una lezione con questo tipo di account")
@@ -23,11 +22,13 @@ class LessonService:
         new_lesson_start_time = lesson.start_time
         new_lesson_end_time = lesson.end_time
 
-        for les in self.existing_lesson:
-            if(new_lesson_start_time <= les.end_time and new_lesson_end_time > les.start_time):
-                raise OverLappingTimeLesson("Sovrapposizione temporale della lezione")
+        for lesson_room in self.existing_lesson:
+            if(room_id == lesson_room.id):    
+                for les in self.existing_lesson:
+                    if(new_lesson_start_time <= les.end_time and new_lesson_end_time > les.start_time):
+                        raise OverLappingTimeLesson("Sovrapposizione temporale della lezione")
 
-        new_lesson = Lesson(id=len(self.existing_lesson)+1, name=lesson.name,start_time=lesson.start_time, end_time=lesson.end_time,teacher_id=teacher.id, room_id=self.room.id)
+        new_lesson = Lesson(id=len(self.existing_lesson)+1, name=lesson.name,start_time=lesson.start_time, end_time=lesson.end_time,teacher_id=teacher.id, room_id=room_id)
         self.existing_lesson.append(new_lesson)
 
         return new_lesson

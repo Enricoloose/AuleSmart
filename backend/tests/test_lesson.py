@@ -19,9 +19,9 @@ def standard_teacher() -> User:
 
 def test_success_to_create_lesson(standard_teacher,room_with_standard_capacity,not_started_lesson):
 
-    service = LessonService(room=room_with_standard_capacity,user=standard_teacher)
+    service = LessonService(user=standard_teacher)
 
-    service.create(teacher=standard_teacher, lesson=not_started_lesson)
+    service.create(teacher=standard_teacher, lesson=not_started_lesson, room_id=room_with_standard_capacity.id)
 
     assert len(service.existing_lesson) == 1
 
@@ -61,4 +61,16 @@ def test_create_time_overlap_lesson(room_with_standard_capacity,standard_teacher
     assert len(service.existing_lesson) == 1
 
 
+def test_create_room_overlap_lesson(standard_teacher,not_started_lesson):
+
+    room_1 = Room(id=1,name="Aula5",capacity=50)
+    room_2 = Room(id=2,name="Aula3",capacity=30)
+
+    service_1 = LessonService(room=room_1,user=standard_teacher)
+    service_2 = LessonService(room=room_2, user=standard_teacher)
+
+    service_1.create(teacher=standard_teacher,lesson=not_started_lesson)
+
+    with pytest.raises(OverLappingRoomLesson):
+        service_2.create(teacher=standard_teacher, lesson=not_started_lesson)
 
