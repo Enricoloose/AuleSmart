@@ -7,3 +7,6 @@ class OverLappingTimeLesson(Exception):
 class OverLappingRoomLesson(Exception):
     pass
 
+class UnauthorizeDeleteError(Exception):
+    pass
+

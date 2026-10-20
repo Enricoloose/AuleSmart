@@ -1,6 +1,6 @@
 from backend.models import Room,Lesson,Reservation,User,Role
 from backend.exceptions.booking_exceptions import UnauthorizeRoleError
-from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson
+from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson, UnauthorizeDeleteError
 from datetime import datetime, timedelta
 
 MAX_LESSION_SLOT = timedelta(hours=2,minutes=30)
@@ -34,6 +34,13 @@ class LessonService:
 
         return new_lesson
 
-    #def delete(self, teacher: User, lesson: Lesson, room_id: int) -> Lesson:
+    def delete(self, lesson: Lesson, teacher : User) -> Lesson:
 
+        if(lesson.teacher_id != teacher.id):
+            raise UnauthorizeDeleteError
+
+        for les in self.existing_lesson:
+            if (lesson.id == les.id):
+                self.existing_lesson.remove(les)
+                return
 
