@@ -1,6 +1,6 @@
 from backend.models import Room,Lesson,Reservation,User,Role
 from backend.exceptions.booking_exceptions import UnauthorizeRoleError
-from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson
+from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson
 from datetime import datetime, timedelta
 
 MAX_LESSION_SLOT = timedelta(hours=2,minutes=30)
@@ -22,11 +22,13 @@ class LessonService:
         new_lesson_start_time = lesson.start_time
         new_lesson_end_time = lesson.end_time
 
-        for lesson_room in self.existing_lesson:
-            if(room_id == lesson_room.id):    
-                for les in self.existing_lesson:
-                    if(new_lesson_start_time <= les.end_time and new_lesson_end_time > les.start_time):
-                        raise OverLappingTimeLesson("Sovrapposizione temporale della lezione")
+        for les in self.existing_lesson:
+            if(new_lesson_start_time < les.end_time and new_lesson_end_time > les.start_time):
+                if(room_id == les.room_id):
+                    raise OverLappingTimeLesson("Sovrapposizione temporale della lezione")
+                if (teacher.id == les.teacher_id):
+                    raise OverLappingRoomLesson("Il docente ha già una lezione programmata")
+
 
         new_lesson = Lesson(id=len(self.existing_lesson)+1, name=lesson.name,start_time=lesson.start_time, end_time=lesson.end_time,teacher_id=teacher.id, room_id=room_id)
         self.existing_lesson.append(new_lesson)
