@@ -25,12 +25,12 @@ def test_success_to_create_lesson(standard_teacher,room_with_standard_capacity,n
 
     assert len(service.existing_lesson) == 1
 
-def test_only_teacher_create_lesson(room_with_standard_capacity,standard_student):
+def test_only_teacher_create_lesson(room_with_standard_capacity,standard_student, not_started_lesson):
 
-    service = LessonService(room=room_with_standard_capacity, user=standard_student)
+    service = LessonService(user=standard_student)
 
     with pytest.raises(UnauthorizeRoleError):
-        service.create(teacher=standard_student,lesson=not_started_lesson)
+        service.create(teacher=standard_student,lesson=not_started_lesson, room_id=room_with_standard_capacity.id)
 
 def test_check_lesson_duration(room_with_standard_capacity, standard_teacher):
 
