@@ -7,8 +7,7 @@ MAX_LESSION_SLOT = timedelta(hours=2,minutes=30)
 
 #gestisce le lezione per tutte le aule, così posso fare il confronto se un docente prenota contemporanemente due aule
 class LessonService:
-    def __init__(self, user: User, existing_lesson: list[Lesson] | None = None) -> None:
-        self.user = user
+    def __init__(self, existing_lesson: list[Lesson] | None = None) -> None:
         self.existing_lesson = existing_lesson if existing_lesson is not None else []
 
     def create(self, teacher : User, lesson : Lesson, room_id : int) -> Lesson:
@@ -34,4 +33,7 @@ class LessonService:
         self.existing_lesson.append(new_lesson)
 
         return new_lesson
+
+    #def delete(self, teacher: User, lesson: Lesson, room_id: int) -> Lesson:
+
 

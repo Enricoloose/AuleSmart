@@ -19,7 +19,7 @@ def standard_teacher() -> User:
 
 def test_success_to_create_lesson(standard_teacher,room_with_standard_capacity,not_started_lesson):
 
-    service = LessonService(user=standard_teacher)
+    service = LessonService()
 
     service.create(teacher=standard_teacher, lesson=not_started_lesson, room_id=room_with_standard_capacity.id)
 
@@ -27,14 +27,14 @@ def test_success_to_create_lesson(standard_teacher,room_with_standard_capacity,n
 
 def test_only_teacher_create_lesson(room_with_standard_capacity,standard_student, not_started_lesson):
 
-    service = LessonService(user=standard_student)
+    service = LessonService()
 
     with pytest.raises(UnauthorizeRoleError):
         service.create(teacher=standard_student,lesson=not_started_lesson, room_id=room_with_standard_capacity.id)
 
 def test_check_lesson_duration(room_with_standard_capacity, standard_teacher):
 
-    service = LessonService(user=standard_teacher)
+    service = LessonService()
 
     start_time = datetime.now()
     end_time = datetime.now() + timedelta(hours=3)
@@ -56,7 +56,7 @@ def test_create_time_overlap_lesson(room_with_standard_capacity,standard_teacher
     teacher_2 = User(id=2,email="prova2@gmail.com",hased_password="str",name="Marco",surname="Rossi",role=Role.TEACHER)
 
 
-    service = LessonService(user=standard_teacher,existing_lesson=[existing_lesson])
+    service = LessonService(existing_lesson=[existing_lesson])
 
     with pytest.raises(OverLappingTimeLesson):
         service.create(teacher=teacher_2,lesson=overlap_lesson,room_id=room_with_standard_capacity.id)
@@ -71,7 +71,7 @@ def test_create_room_overlap_lesson(standard_teacher,not_started_lesson):
 
     existing_lesson = Lesson(id=1,name="Deep Learning", start_time=not_started_lesson.start_time, end_time=not_started_lesson.end_time,teacher_id=standard_teacher.id, room_id=room_1.id)
 
-    service = LessonService(user=standard_teacher,existing_lesson=[existing_lesson])
+    service = LessonService(existing_lesson=[existing_lesson])
 
     overlap_room_lesson = Lesson(id=2,name="Fondamenti di Informatica", start_time=not_started_lesson.start_time,end_time=not_started_lesson.end_time,teacher_id=standard_teacher.id,room_id=room_2.id)
 
@@ -80,4 +80,6 @@ def test_create_room_overlap_lesson(standard_teacher,not_started_lesson):
         service.create(teacher=standard_teacher, lesson=overlap_room_lesson,room_id=room_2.id)
 
     assert len(service.existing_lesson) == 1
+
+
 
