@@ -34,7 +34,7 @@ def test_only_teacher_create_lesson(room_with_standard_capacity,standard_student
 
 def test_check_lesson_duration(room_with_standard_capacity, standard_teacher):
 
-    service = LessonService(room=room_with_standard_capacity,user=standard_teacher)
+    service = LessonService(user=standard_teacher)
 
     start_time = datetime.now()
     end_time = datetime.now() + timedelta(hours=3)
@@ -42,7 +42,7 @@ def test_check_lesson_duration(room_with_standard_capacity, standard_teacher):
     over_duration_lesson = Lesson(1,"Deep Learning", start_time=start_time, end_time=end_time, teacher_id=standard_teacher.id, room_id=room_with_standard_capacity.id)
 
     with pytest.raises(MaxDurationLessonError):
-        service.create(teacher=standard_teacher,lesson=over_duration_lesson)
+        service.create(teacher=standard_teacher,lesson=over_duration_lesson,room_id=room_with_standard_capacity.id)
 
 def test_create_time_overlap_lesson(room_with_standard_capacity,standard_teacher, not_started_lesson):
 
@@ -53,10 +53,10 @@ def test_create_time_overlap_lesson(room_with_standard_capacity,standard_teacher
 
     overlap_lesson = Lesson(1,"Fondamenti di Informatica", start_time=overlap_start_time, end_time=overlap_end_time, teacher_id=standard_teacher.id, room_id=room_with_standard_capacity.id)
 
-    service = LessonService(room=room_with_standard_capacity,user=standard_teacher,existing_lesson=[existing_lesson])
+    service = LessonService(user=standard_teacher,existing_lesson=[existing_lesson])
 
     with pytest.raises(OverLappingTimeLesson):
-        service.create(teacher=standard_teacher,lesson=overlap_lesson)
+        service.create(teacher=standard_teacher,lesson=overlap_lesson,room_id=room_with_standard_capacity.id)
 
     assert len(service.existing_lesson) == 1
 
