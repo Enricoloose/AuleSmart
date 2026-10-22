@@ -10,3 +10,9 @@ class OverLappingRoomLesson(Exception):
 class UnauthorizeDeleteError(Exception):
     pass
 
+class TimeDeleteError(Exception):
+    pass
+
+class MinDurationLessonError(Exception):
+    pass
+

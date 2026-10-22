@@ -1,9 +1,10 @@
 from backend.models import Room,Lesson,Reservation,User,Role
 from backend.exceptions.booking_exceptions import UnauthorizeRoleError
-from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson, UnauthorizeDeleteError
+from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson,UnauthorizeDeleteError,TimeDeleteError,MinDurationLessonError
 from datetime import datetime, timedelta
 
-MAX_LESSION_SLOT = timedelta(hours=2,minutes=30)
+MAX_LESSION_DURATION = timedelta(hours=2,minutes=30)
+MIN_LESSION_DURATION = timedelta(hours=1)
 
 #gestisce le lezione per tutte le aule, così posso fare il confronto se un docente prenota contemporanemente due aule
 class LessonService:
@@ -15,8 +16,11 @@ class LessonService:
         if(teacher.role != Role.TEACHER):
             raise UnauthorizeRoleError("Non è possibile creare una lezione con questo tipo di account")
 
-        if((lesson.end_time - lesson.start_time) >= MAX_LESSION_SLOT):
+        if((lesson.end_time - lesson.start_time) > MAX_LESSION_DURATION):
             raise MaxDurationLessonError("Durata massima della lezione violata")
+
+        if((lesson.end_time - lesson.start_time) < MIN_LESSION_DURATION):
+            raise MinDurationLessonError("Durata minima della lezione violata")
 
         new_lesson_start_time = lesson.start_time
         new_lesson_end_time = lesson.end_time
@@ -36,8 +40,13 @@ class LessonService:
 
     def delete(self, lesson: Lesson, teacher : User) -> Lesson:
 
+        current_datetime = datetime.now()
+    
         if(lesson.teacher_id != teacher.id):
-            raise UnauthorizeDeleteError
+            raise UnauthorizeDeleteError("Impossibile cancellare la lezione per il tipo account")
+
+        if(lesson.start_time <= current_datetime):
+            raise TimeDeleteError("Impossibile cancellare la lezione: la lezione è già avviata")
 
         for les in self.existing_lesson:
             if (lesson.id == les.id):

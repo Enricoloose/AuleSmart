@@ -2,7 +2,7 @@ import pytest
 from backend.models import Room,Reservation,Lesson,Role,User
 from backend.lesson import LessonService
 from backend.exceptions.booking_exceptions import UnauthorizeRoleError
-from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson, UnauthorizeDeleteError
+from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson,UnauthorizeDeleteError,TimeDeleteError,MinDurationLessonError
 from datetime import datetime,timedelta
 from common_fixture import room_with_standard_capacity,standard_student,not_started_lesson
 
@@ -32,17 +32,30 @@ def test_only_teacher_create_lesson(room_with_standard_capacity,standard_student
     with pytest.raises(UnauthorizeRoleError):
         service.create(teacher=standard_student,lesson=not_started_lesson, room_id=room_with_standard_capacity.id)
 
-def test_check_lesson_duration(room_with_standard_capacity, standard_teacher):
+def test_max_lesson_duration(room_with_standard_capacity, standard_teacher):
 
     service = LessonService()
 
     start_time = datetime.now()
-    end_time = datetime.now() + timedelta(hours=3)
+    end_time = datetime.now() + timedelta(minutes=151)
 
     over_duration_lesson = Lesson(1,"Deep Learning", start_time=start_time, end_time=end_time, teacher_id=standard_teacher.id, room_id=room_with_standard_capacity.id)
 
     with pytest.raises(MaxDurationLessonError):
         service.create(teacher=standard_teacher,lesson=over_duration_lesson,room_id=room_with_standard_capacity.id)
+
+def test_lesson_min_duration(room_with_standard_capacity, standard_teacher):
+
+    start_time = datetime.now()
+    shorter_end_time = datetime.now() + timedelta(minutes=59)
+    
+    shorter_lesson = Lesson(id=1,name="Deep Learning",start_time=start_time,end_time=shorter_end_time,teacher_id=standard_teacher.id,room_id=room_with_standard_capacity.id)
+
+    service = LessonService()
+
+    with pytest.raises(MinDurationLessonError):
+        service.create(teacher=standard_teacher,lesson=shorter_lesson,room_id=room_with_standard_capacity.id)
+
 
 def test_create_time_overlap_lesson(room_with_standard_capacity,standard_teacher, not_started_lesson):
 
@@ -101,14 +114,14 @@ def test_success_to_delete_lesson(standard_teacher, not_started_lesson):
     assert len(service.existing_lesson) == 1
 
 
-def test_delete_not_own_lesson(not_started_lesson):
+def test_delete_not_own_lesson():
 
     #docente 1 non può cancellare una lezione di docente 2, indipendetemente da sovrapposizioni temporali o di aula
 
     teacher_1 = User(id=1,email="prova1@gmail.com",hased_password="psw1",name="Enrico",surname="Danieli",role=Role.TEACHER)
     teacher_2 = User(id=2,email="prova2@gmail.com",hased_password="psw2",name="Mario",surname="Rossi",role=Role.TEACHER)
 
-    lesson_1 = Lesson(id=1,name="Deep Learning",start_time=datetime.now(),end_time=datetime.now(),teacher_id=teacher_1.id,room_id=1)
+    lesson_1 = Lesson(id=1,name="Deep Learning",start_time=datetime.now(),end_time=datetime.now() + timedelta(hours=2),teacher_id=teacher_1.id,room_id=1)
 
     service = LessonService()
 
@@ -116,4 +129,18 @@ def test_delete_not_own_lesson(not_started_lesson):
 
     with pytest.raises(UnauthorizeDeleteError):
         service.delete(lesson=lesson_1, teacher=teacher_2)
+
+def test_fail_to_delete_started_lesson(standard_teacher, room_with_standard_capacity):
+
+    current_start_time = datetime.now()
+    current_end_time = datetime.now() + timedelta(hours=2)
+
+    current_lesson = Lesson(id=1,name='Deep Learning',start_time=current_start_time,end_time=current_end_time,teacher_id=standard_teacher.id,room_id=room_with_standard_capacity)
+
+    service = LessonService()
+
+    service.create(teacher=standard_teacher,lesson=current_lesson,room_id=room_with_standard_capacity.id)
+
+    with pytest.raises(TimeDeleteError):
+        service.delete(lesson=current_lesson,teacher=standard_teacher)
 
