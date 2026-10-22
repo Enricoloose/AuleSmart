@@ -16,3 +16,6 @@ class TimeDeleteError(Exception):
 class MinDurationLessonError(Exception):
     pass
 
+class LessonNotFoundError(Exception):
+    pass
+

@@ -2,7 +2,7 @@ import pytest
 from backend.models import Room,Reservation,Lesson,Role,User
 from backend.lesson import LessonService
 from backend.exceptions.booking_exceptions import UnauthorizeRoleError
-from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson,UnauthorizeDeleteError,TimeDeleteError,MinDurationLessonError
+from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson,UnauthorizeDeleteError,TimeDeleteError,MinDurationLessonError,LessonNotFoundError
 from datetime import datetime,timedelta
 from common_fixture import room_with_standard_capacity,standard_student,not_started_lesson
 
@@ -143,4 +143,17 @@ def test_fail_to_delete_started_lesson(standard_teacher, room_with_standard_capa
 
     with pytest.raises(TimeDeleteError):
         service.delete(lesson=current_lesson,teacher=standard_teacher)
+
+def test_fail_delete_not_existing_lesson(standard_teacher,room_with_standard_capacity,not_started_lesson):
+
+    service = LessonService([not_started_lesson])
+
+    not_reserved_lesson = Lesson(id=2,name="Fondamenti di Informatica",start_time=datetime.now()+timedelta(minutes=30),end_time=datetime.now() + timedelta(hours=2),teacher_id=standard_teacher.id,room_id=room_with_standard_capacity.id)
+
+    with pytest.raises(LessonNotFoundError):
+        service.delete(lesson=not_reserved_lesson,teacher=standard_teacher)
+
+    assert len(service.existing_lesson) == 1
+
+
 

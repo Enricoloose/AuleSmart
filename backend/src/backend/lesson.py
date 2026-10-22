@@ -1,6 +1,6 @@
 from backend.models import Room,Lesson,Reservation,User,Role
 from backend.exceptions.booking_exceptions import UnauthorizeRoleError
-from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson,UnauthorizeDeleteError,TimeDeleteError,MinDurationLessonError
+from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson,UnauthorizeDeleteError,TimeDeleteError,MinDurationLessonError,LessonNotFoundError
 from datetime import datetime, timedelta
 
 MAX_LESSION_DURATION = timedelta(hours=2,minutes=30)
@@ -38,7 +38,7 @@ class LessonService:
 
         return new_lesson
 
-    def delete(self, lesson: Lesson, teacher : User) -> Lesson:
+    def delete(self, lesson: Lesson, teacher : User) -> None:
 
         current_datetime = datetime.now()
     
@@ -48,8 +48,11 @@ class LessonService:
         if(lesson.start_time <= current_datetime):
             raise TimeDeleteError("Impossibile cancellare la lezione: la lezione è già avviata")
 
+        
         for les in self.existing_lesson:
             if (lesson.id == les.id):
                 self.existing_lesson.remove(les)
                 return
+
+        raise LessonNotFoundError("Lezione non trovata")
 
