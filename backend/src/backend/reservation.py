@@ -21,7 +21,7 @@ class BookingService:
             raise OverbookingError("Posti esauriti per questa lezione")
 
         for res in self.reservation:
-            if(res.student_id == student.id):
+            if(res.student_id == student.id and res.lesson_id == lesson.id):
                 raise DoubleBookingError("Utente già iscritto per questa lezione")
 
         new_reservation = Reservation(id = len(self.reservation)+1, student_id = student.id, lesson_id = lesson.id, created_at=datetime.now())

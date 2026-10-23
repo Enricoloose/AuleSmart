@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime,timedelta
-from backend.models import Room,Lesson,User,Role
+from backend.models import Room,Lesson,User,Role, Reservation
 from backend.exceptions.booking_exceptions import OverbookingError,DoubleBookingError,UnauthorizedRoleError,ExpiredLessonError,DeleteReservationError,ReservationNotFoundError
 from backend.reservation import BookingService
 from common_fixture import room_with_standard_capacity, standard_student, not_started_lesson, standard_teacher
@@ -31,14 +31,24 @@ def test_booking_to_full_lesson(not_started_lesson, standard_student):
         service.book(student=student_2, lesson=not_started_lesson, room=room_without_capacity)
 
 
-def test_double_booking_to_lesson(not_started_lesson, room_with_standard_capacity,standard_student):
+def test_double_booking_to_lesson(not_started_lesson, room_with_standard_capacity,standard_student, standard_teacher):
 
-    service = BookingService(room=room_with_standard_capacity,lesson=not_started_lesson)
+    reservation = Reservation(id=1,student_id=standard_student.id,lesson_id=not_started_lesson.id,created_at=datetime.now())
+    service = BookingService([reservation])
 
-    service.book(student=standard_student)
+    #controllo che lo studente non riesca ad iscriversi due volte alla stessa lezione, ma che comunque sia in grado di iscriversi ad un'altra lezione
+    lesson_2_start_time = not_started_lesson.end_time + timedelta(hours=1)
+    lesson_2_end_time = lesson_2_start_time + timedelta(hours=2)
+
+    lesson_2 = Lesson(id=not_started_lesson.id + 1, name="Fondamenti di informatica", start_time=lesson_2_start_time, end_time=lesson_2_end_time, teacher_id=standard_teacher, room_id=room_with_standard_capacity.id)
+
+    service.book(student=standard_student,lesson=lesson_2,room=room_with_standard_capacity)
 
     with pytest.raises(DoubleBookingError):
-        service.book(student=standard_student)
+       service.book(student=standard_student, lesson=not_started_lesson, room=room_with_standard_capacity)
+
+    assert len(service.reservation) == 1
+
 
 def test_teacher_booking_to_lesson(not_started_lesson, room_with_standard_capacity):
 
