@@ -3,33 +3,32 @@ from datetime import datetime,timedelta
 from backend.models import Room,Lesson,User,Role
 from backend.exceptions.booking_exceptions import OverbookingError,DoubleBookingError,UnauthorizedRoleError,ExpiredLessonError,DeleteReservationError,ReservationNotFoundError
 from backend.reservation import BookingService
-from common_fixture import room_with_standard_capacity, standard_student, not_started_lesson
+from common_fixture import room_with_standard_capacity, standard_student, not_started_lesson, standard_teacher
 
 
 def test_success_booking_to_lesson(not_started_lesson,room_with_standard_capacity,standard_student):
 
     #la capacità dell'aula è un valore statico, dopo per calcolare la capacità rimanente controllo le iscrizioni con la capacità dell'aula
 
-    service = BookingService(room=room_with_standard_capacity,lesson=not_started_lesson)
+    service = BookingService()
     
-    service.book(student=standard_student)
+    service.book(student=standard_student, lesson=not_started_lesson, room=room_with_standard_capacity)
 
     assert len(service.reservation) == 1
     
 
-def test_booking_to_full_lesson(not_started_lesson):
-    room = Room(id=1,name="Aula1",capacity=1)
+def test_booking_to_full_lesson(not_started_lesson, standard_student):
 
-    student_1 = User(id=1,email="prova@gmail.com",hashed_password="psw",name="enrico",surname="danieli",role=Role.STUDENT)
+    room_without_capacity = Room(id=2,name="Aula1",capacity=1)
 
-    service = BookingService(room=room,lesson=not_started_lesson)
+    service = BookingService()
 
-    service.book(student=student_1)
+    service.book(student=standard_student,lesson=not_started_lesson,room=room_without_capacity)
     
-    student_2 = User(id=2,email="prova@gmail.com",hashed_password="psw",name="mario",surname="rossi",role=Role.STUDENT)
+    student_2 = User(id=3,email="pino.vedi@edu.unife.it",hashed_password="psw",name="Pino",surname="Verdi",role=Role.STUDENT)
 
     with pytest.raises(OverbookingError):
-        service.book(student=student_2)
+        service.book(student=student_2, lesson=not_started_lesson, room=room_without_capacity)
 
 
 def test_double_booking_to_lesson(not_started_lesson, room_with_standard_capacity,standard_student):

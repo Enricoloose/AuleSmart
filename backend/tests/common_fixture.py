@@ -12,7 +12,7 @@ def room_with_standard_capacity() -> Room:
 @pytest.fixture
 def standard_student() -> User:
     id = 1
-    email = "prova@gmail.com"
+    email = "enrico.danieli@edu.unife.it"
     hased_password = "pasw"
     name = "enrico"
     surname = "danieli"
@@ -20,7 +20,17 @@ def standard_student() -> User:
     return User(id=id,email=email,hashed_password=hased_password,name=name,surname=surname,role=role)
 
 @pytest.fixture
-def not_started_lesson() -> Lesson:
+def standard_teacher() -> User:
+    id = 2
+    email = "mrorss@edu.it"
+    hased_password = "pasw"
+    name = "Mario"
+    surname = "Rossi"
+    role = Role.TEACHER
+    return User(id=id,email=email,hashed_password=hased_password,name=name,surname=surname,role=role)
+
+@pytest.fixture
+def not_started_lesson(standard_teacher,room_with_standard_capacity) -> Lesson:
     start_time = datetime.now() + timedelta(hours=1)
     end_time = datetime.now() + timedelta(hours=2)
-    return Lesson(id=1,name="Deep Learning",start_time=start_time,end_time=end_time,teacher_id=1,room_id=1)
+    return Lesson(id=1,name="Deep Learning",start_time=start_time,end_time=end_time,teacher_id=standard_teacher.id,room_id=room_with_standard_capacity.id)
