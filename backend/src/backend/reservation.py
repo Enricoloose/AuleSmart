@@ -39,9 +39,10 @@ class BookingService:
             raise DeleteReservationError("Non puoi cancellare la prenotazione")
 
         for res in self.reservation:
-            if(res.student_id == student_id):
+            if(res.student_id == student_id and res.lesson_id == lesson.id):
                 self.reservation.remove(res)
                 return
+            
 
         raise ReservationNotFoundError("Prenotazione non trovata")
 

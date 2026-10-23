@@ -7,16 +7,6 @@ from datetime import datetime,timedelta
 from common_fixture import room_with_standard_capacity,standard_student,not_started_lesson
 
 
-@pytest.fixture
-def standard_teacher() -> User:
-    id = 1
-    email = "prova@gmail.com"
-    hased_password = "pasw"
-    name = "enrico"
-    surname = "danieli"
-    role = Role.TEACHER
-    return User(id=id,email=email,hashed_password=hased_password,name=name,surname=surname,role=role)
-
 def test_success_to_create_lesson(standard_teacher,room_with_standard_capacity,not_started_lesson):
 
     service = LessonService()
