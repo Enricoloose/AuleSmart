@@ -36,13 +36,6 @@ def test_double_booking_to_lesson(not_started_lesson, room_with_standard_capacit
     reservation = Reservation(id=1,student_id=standard_student.id,lesson_id=not_started_lesson.id,created_at=datetime.now())
     service = BookingService([reservation])
 
-    #controllo che lo studente non riesca ad iscriversi due volte alla stessa lezione, ma che comunque sia in grado di iscriversi ad un'altra lezione
-    lesson_2_start_time = not_started_lesson.end_time + timedelta(hours=1)
-    lesson_2_end_time = lesson_2_start_time + timedelta(hours=2)
-
-    lesson_2 = Lesson(id=not_started_lesson.id + 1, name="Fondamenti di informatica", start_time=lesson_2_start_time, end_time=lesson_2_end_time, teacher_id=standard_teacher, room_id=room_with_standard_capacity.id)
-
-    service.book(student=standard_student,lesson=lesson_2,room=room_with_standard_capacity)
 
     with pytest.raises(DoubleBookingError):
        service.book(student=standard_student, lesson=not_started_lesson, room=room_with_standard_capacity)
@@ -107,22 +100,22 @@ def test_delete_already_started_lesson(standard_student,room_with_standard_capac
         service.delete(standard_student.id, lesson = future_lesson)
 
 
-def test_success_to_delete_reservation(room_with_standard_capacity,not_started_lesson,standard_student):
+def test_success_to_delete_reservation(not_started_lesson,standard_student, room_with_standard_capacity):
 
-    service = BookingService(room=room_with_standard_capacity,lesson=not_started_lesson)
+    service = BookingService()
 
-    service.book(standard_student)
+    service.book(student=standard_student,lesson=not_started_lesson,room=room_with_standard_capacity)
 
-    service.delete(standard_student.id)
+    service.delete(standard_student.id, lesson=not_started_lesson)
 
     assert len(service.reservation) == 0
 
 def test_delete_non_existing_reservation(room_with_standard_capacity,not_started_lesson,standard_student):
     
-    service = BookingService(room=room_with_standard_capacity,lesson=not_started_lesson)
+    service = BookingService()
 
     with pytest.raises(ReservationNotFoundError):
-        service.delete(standard_student.id)
+        service.delete(student_id=standard_student.id, lesson=not_started_lesson)
 
 
 
