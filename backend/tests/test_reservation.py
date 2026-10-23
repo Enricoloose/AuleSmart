@@ -55,28 +55,6 @@ def test_multiple_booking_to_lesson(not_started_lesson,room_with_standard_capaci
 
     assert len(service.reservation) == 2
 
-"""
-def test_booking_to_overlapping_lesson(not_started_lesson,standard_student,room_with_standard_capacity,):
-    #voglio impedire che uno studente si possa iscrivere a due lezioni diverse ma che combaciano con gli orari (stessi orari ma aule diverse)
-
-    room_2 = Room(id=room_with_standard_capacity.id + 1, name="Aula3", capacity=25)
-
-    teacher_2 = User(id=standard_student.id+1, email="pino.vedi@edu.it", hashed_password="psw", name="Pino", surname="Verdi", role=Role.TEACHER)
-
-    overlap_start_time = not_started_lesson.start_time
-    overlap_end_time = not_started_lesson.end_time
-    overlap_lesson = Lesson(id=not_started_lesson.id + 1, name="Fondamenti di informatica", start_time=overlap_start_time, end_time=overlap_end_time, teacher_id=teacher_2.id, room_id=room_2.id)
-
-    service = BookingService()
-
-    #prima prenotazione
-    service.book(student=standard_student,lesson=not_started_lesson,room=room_with_standard_capacity)
-
-    #seconda prenotazione
-    with pytest.raises(OverLappingTimeLesson):
-        service.book(student=standard_student,lesson=overlap_lesson,room=room_2)
-
-"""
 
 def test_teacher_booking_to_lesson(not_started_lesson, room_with_standard_capacity, standard_student):
 
