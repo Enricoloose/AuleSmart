@@ -19,7 +19,7 @@ def test_success_booking_to_lesson(not_started_lesson,room_with_standard_capacit
 
 def test_booking_to_full_lesson(not_started_lesson, standard_student):
 
-    room_without_capacity = Room(id=2,name="Aula1",capacity=1)
+    room_without_capacity = Room(id=2,name="Aula3",capacity=1)
 
     service = BookingService()
 
@@ -36,18 +36,24 @@ def test_double_booking_to_lesson(not_started_lesson, room_with_standard_capacit
     reservation = Reservation(id=1,student_id=standard_student.id,lesson_id=not_started_lesson.id,created_at=datetime.now())
     service = BookingService([reservation])
 
-    #controllo che lo studente non riesca ad iscriversi due volte alla stessa lezione, ma che comunque sia in grado di iscriversi ad un'altra lezione
+    with pytest.raises(DoubleBookingError):
+       service.book(student=standard_student, lesson=not_started_lesson, room=room_with_standard_capacity)
+
+    assert len(service.reservation) == 1
+
+def test_multiple_booking_to_lesson(not_started_lesson,room_with_standard_capacity,standard_student):
+
     lesson_2_start_time = not_started_lesson.end_time + timedelta(hours=1)
     lesson_2_end_time = lesson_2_start_time + timedelta(hours=2)
 
     lesson_2 = Lesson(id=not_started_lesson.id + 1, name="Fondamenti di informatica", start_time=lesson_2_start_time, end_time=lesson_2_end_time, teacher_id=standard_teacher, room_id=room_with_standard_capacity.id)
 
+    service = BookingService()
+
+    service.book(student=standard_student,lesson=not_started_lesson,room=room_with_standard_capacity)
     service.book(student=standard_student,lesson=lesson_2,room=room_with_standard_capacity)
 
-    with pytest.raises(DoubleBookingError):
-       service.book(student=standard_student, lesson=not_started_lesson, room=room_with_standard_capacity)
-
-    assert len(service.reservation) == 1
+    assert len(service.reservation) == 2
 
 
 def test_teacher_booking_to_lesson(not_started_lesson, room_with_standard_capacity):
@@ -71,6 +77,7 @@ def test_booking_to_started_lesson(room_with_standard_capacity,standard_student)
 
     with pytest.raises(ExpiredLessonError):
         service.book(student=standard_student)
+
 
 def test_fail_to_delete_reservation(room_with_standard_capacity,standard_student):
 
