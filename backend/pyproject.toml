@@ -8,7 +8,9 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "coverage>=7.17.0",
     "debugpy>=1.8.22",
+    "mutmut>=3.8.0",
     "pytest>=9.1.1",
 ]
 
