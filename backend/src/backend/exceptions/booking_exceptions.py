@@ -4,7 +4,7 @@ class OverbookingError(Exception):
 class DoubleBookingError(Exception):
     pass
 
-class UnauthorizeRoleError(Exception):
+class UnauthorizedRoleError(Exception):
     pass
 
 class ExpiredLessonError(Exception):

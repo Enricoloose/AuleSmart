@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-import datetime
+from datetime import datetime
 from enum import Enum
 
 @dataclass (frozen=True)
@@ -17,7 +17,7 @@ class Role(Enum):
 class User:
     id : int
     email : str
-    hased_password : str
+    hashed_password : str
     name : str
     surname : str
     role : Role

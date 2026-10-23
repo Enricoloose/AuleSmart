@@ -1,8 +1,8 @@
 import pytest
 from backend.models import Room,Reservation,Lesson,Role,User
 from backend.lesson import LessonService
-from backend.exceptions.booking_exceptions import UnauthorizeRoleError
-from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson,UnauthorizeDeleteError,TimeDeleteError,MinDurationLessonError,LessonNotFoundError
+from backend.exceptions.booking_exceptions import UnauthorizedRoleError
+from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson,UnauthorizedDeleteError,TimeDeleteError,MinDurationLessonError,LessonNotFoundError
 from datetime import datetime,timedelta
 from common_fixture import room_with_standard_capacity,standard_student,not_started_lesson
 
@@ -15,7 +15,7 @@ def standard_teacher() -> User:
     name = "enrico"
     surname = "danieli"
     role = Role.TEACHER
-    return User(id=id,email=email,hased_password=hased_password,name=name,surname=surname,role=role)
+    return User(id=id,email=email,hashed_password=hased_password,name=name,surname=surname,role=role)
 
 def test_success_to_create_lesson(standard_teacher,room_with_standard_capacity,not_started_lesson):
 
@@ -29,7 +29,7 @@ def test_only_teacher_create_lesson(room_with_standard_capacity,standard_student
 
     service = LessonService()
 
-    with pytest.raises(UnauthorizeRoleError):
+    with pytest.raises(UnauthorizedRoleError):
         service.create(teacher=standard_student,lesson=not_started_lesson, room_id=room_with_standard_capacity.id)
 
 def test_max_lesson_duration(room_with_standard_capacity, standard_teacher):
@@ -66,7 +66,7 @@ def test_create_time_overlap_lesson(room_with_standard_capacity,standard_teacher
     overlap_end_time = datetime.now() + timedelta(hours=2, minutes=30)
 
     overlap_lesson = Lesson(id=2,name="Fondamenti di Informatica", start_time=overlap_start_time, end_time=overlap_end_time, teacher_id=standard_teacher.id, room_id=room_with_standard_capacity.id)
-    teacher_2 = User(id=2,email="prova2@gmail.com",hased_password="str",name="Marco",surname="Rossi",role=Role.TEACHER)
+    teacher_2 = User(id=2,email="prova2@gmail.com",hashed_password="str",name="Marco",surname="Rossi",role=Role.TEACHER)
 
 
     service = LessonService(existing_lesson=[existing_lesson])
@@ -118,8 +118,8 @@ def test_delete_not_own_lesson():
 
     #docente 1 non può cancellare una lezione di docente 2, indipendetemente da sovrapposizioni temporali o di aula
 
-    teacher_1 = User(id=1,email="prova1@gmail.com",hased_password="psw1",name="Enrico",surname="Danieli",role=Role.TEACHER)
-    teacher_2 = User(id=2,email="prova2@gmail.com",hased_password="psw2",name="Mario",surname="Rossi",role=Role.TEACHER)
+    teacher_1 = User(id=1,email="prova1@gmail.com",hashed_password="psw1",name="Enrico",surname="Danieli",role=Role.TEACHER)
+    teacher_2 = User(id=2,email="prova2@gmail.com",hashed_password="psw2",name="Mario",surname="Rossi",role=Role.TEACHER)
 
     lesson_1 = Lesson(id=1,name="Deep Learning",start_time=datetime.now(),end_time=datetime.now() + timedelta(hours=2),teacher_id=teacher_1.id,room_id=1)
 
@@ -127,7 +127,7 @@ def test_delete_not_own_lesson():
 
     service.create(teacher=teacher_1,lesson=lesson_1,room_id=lesson_1.room_id)
 
-    with pytest.raises(UnauthorizeDeleteError):
+    with pytest.raises(UnauthorizedDeleteError):
         service.delete(lesson=lesson_1, teacher=teacher_2)
 
 def test_fail_to_delete_started_lesson(standard_teacher, room_with_standard_capacity):

@@ -17,7 +17,7 @@ def standard_student() -> User:
     name = "enrico"
     surname = "danieli"
     role = Role.STUDENT
-    return User(id=id,email=email,hased_password=hased_password,name=name,surname=surname,role=role)
+    return User(id=id,email=email,hashed_password=hased_password,name=name,surname=surname,role=role)
 
 @pytest.fixture
 def not_started_lesson() -> Lesson:

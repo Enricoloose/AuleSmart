@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime,timedelta
 from backend.models import Room,Lesson,User,Role
-from backend.exceptions.booking_exceptions import OverbookingError,DoubleBookingError,UnauthorizeRoleError,ExpiredLessonError,DeleteReservationError,ReservationNotFoundError
+from backend.exceptions.booking_exceptions import OverbookingError,DoubleBookingError,UnauthorizedRoleError,ExpiredLessonError,DeleteReservationError,ReservationNotFoundError
 from backend.reservation import BookingService
 from common_fixture import room_with_standard_capacity, standard_student, not_started_lesson
 
@@ -20,13 +20,13 @@ def test_success_booking_to_lesson(not_started_lesson,room_with_standard_capacit
 def test_booking_to_full_lesson(not_started_lesson):
     room = Room(id=1,name="Aula1",capacity=1)
 
-    student_1 = User(id=1,email="prova@gmail.com",hased_password="psw",name="enrico",surname="danieli",role=Role.STUDENT)
+    student_1 = User(id=1,email="prova@gmail.com",hashed_password="psw",name="enrico",surname="danieli",role=Role.STUDENT)
 
     service = BookingService(room=room,lesson=not_started_lesson)
 
     service.book(student=student_1)
     
-    student_2 = User(id=2,email="prova@gmail.com",hased_password="psw",name="mario",surname="rossi",role=Role.STUDENT)
+    student_2 = User(id=2,email="prova@gmail.com",hashed_password="psw",name="mario",surname="rossi",role=Role.STUDENT)
 
     with pytest.raises(OverbookingError):
         service.book(student=student_2)
@@ -43,11 +43,11 @@ def test_double_booking_to_lesson(not_started_lesson, room_with_standard_capacit
 
 def test_teacher_booking_to_lesson(not_started_lesson, room_with_standard_capacity):
 
-    teacher = User(id=1,email="prova@gmail.com",hased_password="psw",name="enrico",surname="danieli",role=Role.TEACHER)
+    teacher = User(id=1,email="prova@gmail.com",hashed_password="psw",name="enrico",surname="danieli",role=Role.TEACHER)
 
     service = BookingService(room=room_with_standard_capacity,lesson=not_started_lesson)
 
-    with pytest.raises(UnauthorizeRoleError):
+    with pytest.raises(UnauthorizedRoleError):
         service.book(student=teacher)
 
 def test_booking_to_started_lesson(room_with_standard_capacity,standard_student):

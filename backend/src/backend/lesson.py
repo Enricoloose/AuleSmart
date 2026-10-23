@@ -1,25 +1,26 @@
 from backend.models import Room,Lesson,Reservation,User,Role
-from backend.exceptions.booking_exceptions import UnauthorizeRoleError
-from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson,UnauthorizeDeleteError,TimeDeleteError,MinDurationLessonError,LessonNotFoundError
+from backend.exceptions.booking_exceptions import UnauthorizedRoleError
+from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson,UnauthorizedDeleteError,TimeDeleteError,MinDurationLessonError,LessonNotFoundError
 from datetime import datetime, timedelta
 
-MAX_LESSION_DURATION = timedelta(hours=2,minutes=30)
-MIN_LESSION_DURATION = timedelta(hours=1)
+MAX_LESSON_DURATION = timedelta(hours=2,minutes=30)
+MIN_LESSON_DURATION = timedelta(hours=1)
 
 #gestisce le lezione per tutte le aule, così posso fare il confronto se un docente prenota contemporanemente due aule
 class LessonService:
     def __init__(self, existing_lesson: list[Lesson] | None = None) -> None:
         self.existing_lesson = existing_lesson if existing_lesson is not None else []
+        self.next_id = max((les.id for les in self.existing_lesson),default=0) + 1 
 
     def create(self, teacher : User, lesson : Lesson, room_id : int) -> Lesson:
 
         if(teacher.role != Role.TEACHER):
-            raise UnauthorizeRoleError("Non è possibile creare una lezione con questo tipo di account")
+            raise UnauthorizedRoleError("Non è possibile creare una lezione con questo tipo di account")
 
-        if((lesson.end_time - lesson.start_time) > MAX_LESSION_DURATION):
+        if((lesson.end_time - lesson.start_time) > MAX_LESSON_DURATION):
             raise MaxDurationLessonError("Durata massima della lezione violata")
 
-        if((lesson.end_time - lesson.start_time) < MIN_LESSION_DURATION):
+        if((lesson.end_time - lesson.start_time) < MIN_LESSON_DURATION):
             raise MinDurationLessonError("Durata minima della lezione violata")
 
         new_lesson_start_time = lesson.start_time
@@ -33,8 +34,9 @@ class LessonService:
                     raise OverLappingRoomLesson("Il docente ha già una lezione programmata")
 
 
-        new_lesson = Lesson(id=len(self.existing_lesson)+1, name=lesson.name,start_time=lesson.start_time, end_time=lesson.end_time,teacher_id=teacher.id, room_id=room_id)
+        new_lesson = Lesson(id=self.next_id, name=lesson.name,start_time=lesson.start_time, end_time=lesson.end_time,teacher_id=teacher.id, room_id=room_id)
         self.existing_lesson.append(new_lesson)
+        self.next_id +=1
 
         return new_lesson
 
@@ -43,7 +45,7 @@ class LessonService:
         current_datetime = datetime.now()
     
         if(lesson.teacher_id != teacher.id):
-            raise UnauthorizeDeleteError("Impossibile cancellare la lezione per il tipo account")
+            raise UnauthorizedDeleteError("Impossibile cancellare la lezione per il tipo account")
 
         if(lesson.start_time <= current_datetime):
             raise TimeDeleteError("Impossibile cancellare la lezione: la lezione è già avviata")
