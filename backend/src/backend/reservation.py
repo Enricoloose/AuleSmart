@@ -1,12 +1,15 @@
 from backend.models import Room,Lesson,Reservation,User,Role
 from datetime import datetime,timedelta
 from backend.exceptions.booking_exceptions import OverbookingError,DoubleBookingError,UnauthorizedRoleError,ExpiredLessonError,DeleteReservationError,ReservationNotFoundError
+from backend.exceptions.lesson_exceptions import OverLappingTimeLesson
+from backend.lesson import LessonArchive
 
 
 class BookingService:
-    def __init__(self, reservation: list[Reservation] | None = None) -> None:
+    def __init__(self, reservation: list[Reservation] | None = None, lesson_archive : LessonArchive | None = None) -> None:
         self.reservation = reservation if reservation is not None else []
         self.next_id = max((res.id for res in self.reservation),default=0) + 1
+        self.lesson_archive = lesson_archive if lesson_archive is not None else LessonArchive()
 
     def book(self, student : User, lesson : Lesson, room : Room) -> Reservation:
 
@@ -25,11 +28,15 @@ class BookingService:
             if(res.student_id == student.id):
                 if(res.lesson_id == lesson.id):
                     raise DoubleBookingError("Utente già iscritto per questa lezione")
+                booked_lesson = self.lesson_archive.get_by_id(res.lesson_id)
+                if(booked_lesson and lesson.start_time < booked_lesson.end_time and lesson.end_time > booked_lesson.start_time):
+                    raise OverLappingTimeLesson("Hai gia una lezione in questo orario")
 
 
         new_reservation = Reservation(id = len(self.reservation)+1, student_id = student.id, lesson_id = lesson.id, created_at=datetime.now())
 
         self.reservation.append(new_reservation)
+        self.lesson_archive.add(lesson)
         self.next_id += 1
         return new_reservation
 
@@ -46,6 +53,8 @@ class BookingService:
             
 
         raise ReservationNotFoundError("Prenotazione non trovata")
+
+
 
 
             
