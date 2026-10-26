@@ -22,29 +22,28 @@ def test_only_teacher_create_lesson(room_with_standard_capacity,standard_student
     with pytest.raises(UnauthorizedRoleError):
         service.create(teacher=standard_student,lesson=not_started_lesson, room_id=room_with_standard_capacity.id)
 
-def test_max_lesson_duration(room_with_standard_capacity, standard_teacher):
+@pytest.mark.parametrize(
+        "duration_in_minutes, expected_exception",
+        [
+            (0,MinDurationLessonError),
+            (-15,MinDurationLessonError),
+            (151,MaxDurationLessonError),
+            (250, MaxDurationLessonError),
+        ]
+)
 
-    service = LessonService()
-
-    start_time = datetime.now()
-    end_time = start_time + timedelta(minutes=151)
-
-    over_max_duration_lesson = Lesson(1,"Deep Learning", start_time=start_time, end_time=end_time, teacher_id=standard_teacher.id, room_id=room_with_standard_capacity.id)
-
-    with pytest.raises(MaxDurationLessonError):
-        service.create(teacher=standard_teacher,lesson=over_max_duration_lesson,room_id=room_with_standard_capacity.id)
-
-def test_lesson_min_duration(room_with_standard_capacity, standard_teacher):
-
-    start_time = datetime.now()
-    shorter_end_time = start_time + timedelta(minutes=59)
+def test_invalid_lesson_duration(room_with_standard_capacity, standard_teacher, duration_in_minutes, expected_exception):
     
-    shorter_lesson = Lesson(id=1,name="Deep Learning",start_time=start_time,end_time=shorter_end_time,teacher_id=standard_teacher.id,room_id=room_with_standard_capacity.id)
-
     service = LessonService()
+    
+    start_time = datetime.now()
+    end_time = start_time + timedelta(minutes=duration_in_minutes)
 
-    with pytest.raises(MinDurationLessonError):
-        service.create(teacher=standard_teacher,lesson=shorter_lesson,room_id=room_with_standard_capacity.id)
+    invalid_time_lesson = Lesson(1,"Deep Learning", start_time=start_time, end_time=end_time, teacher_id=standard_teacher.id, room_id=room_with_standard_capacity.id)
+
+    with pytest.raises(expected_exception):
+        service.create(teacher=standard_teacher, lesson=invalid_time_lesson, room_id=room_with_standard_capacity.id)
+
 
 
 def test_create_time_overlap_lesson(room_with_standard_capacity,standard_teacher, not_started_lesson):
