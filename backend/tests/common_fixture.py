@@ -32,5 +32,5 @@ def standard_teacher() -> User:
 @pytest.fixture
 def not_started_lesson(standard_teacher,room_with_standard_capacity) -> Lesson:
     start_time = datetime.now() + timedelta(hours=1)
-    end_time = datetime.now() + timedelta(hours=2)
+    end_time = start_time + timedelta(hours=2)
     return Lesson(id=1,name="Deep Learning",start_time=start_time,end_time=end_time,teacher_id=standard_teacher.id,room_id=room_with_standard_capacity.id)

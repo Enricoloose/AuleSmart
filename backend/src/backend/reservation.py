@@ -17,8 +17,9 @@ class BookingService:
         if(current_datetime >= lesson.start_time):
             raise ExpiredLessonError("La lezione è già iniziata")
 
-        for res in (r for r in self.reservation if r.lesson_id == lesson.id):
-                raise OverbookingError("Posti esauriti per questa lezione")
+        total_reservation_for_lesson = sum(1 for res in self.reservation if res.lesson_id == lesson.id)
+        if(total_reservation_for_lesson >= room.capacity):
+            raise OverbookingError("Posti esauriti per questa lezione")
 
         for res in self.reservation:
             if(res.student_id == student.id):

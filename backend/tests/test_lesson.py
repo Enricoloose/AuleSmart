@@ -4,7 +4,7 @@ from backend.lesson import LessonService
 from backend.exceptions.booking_exceptions import UnauthorizedRoleError
 from backend.exceptions.lesson_exceptions import MaxDurationLessonError,OverLappingTimeLesson,OverLappingRoomLesson,UnauthorizedDeleteError,TimeDeleteError,MinDurationLessonError,LessonNotFoundError
 from datetime import datetime,timedelta
-from common_fixture import room_with_standard_capacity,standard_student,not_started_lesson
+from common_fixture import room_with_standard_capacity,standard_student,not_started_lesson, standard_teacher
 
 
 def test_success_to_create_lesson(standard_teacher,room_with_standard_capacity,not_started_lesson):
@@ -27,17 +27,17 @@ def test_max_lesson_duration(room_with_standard_capacity, standard_teacher):
     service = LessonService()
 
     start_time = datetime.now()
-    end_time = datetime.now() + timedelta(minutes=151)
+    end_time = start_time + timedelta(minutes=151)
 
-    over_duration_lesson = Lesson(1,"Deep Learning", start_time=start_time, end_time=end_time, teacher_id=standard_teacher.id, room_id=room_with_standard_capacity.id)
+    over_max_duration_lesson = Lesson(1,"Deep Learning", start_time=start_time, end_time=end_time, teacher_id=standard_teacher.id, room_id=room_with_standard_capacity.id)
 
     with pytest.raises(MaxDurationLessonError):
-        service.create(teacher=standard_teacher,lesson=over_duration_lesson,room_id=room_with_standard_capacity.id)
+        service.create(teacher=standard_teacher,lesson=over_max_duration_lesson,room_id=room_with_standard_capacity.id)
 
 def test_lesson_min_duration(room_with_standard_capacity, standard_teacher):
 
     start_time = datetime.now()
-    shorter_end_time = datetime.now() + timedelta(minutes=59)
+    shorter_end_time = start_time + timedelta(minutes=59)
     
     shorter_lesson = Lesson(id=1,name="Deep Learning",start_time=start_time,end_time=shorter_end_time,teacher_id=standard_teacher.id,room_id=room_with_standard_capacity.id)
 
@@ -53,7 +53,7 @@ def test_create_time_overlap_lesson(room_with_standard_capacity,standard_teacher
     existing_lesson = not_started_lesson
 
     overlap_start_time = datetime.now() + timedelta(hours=1, minutes=30)
-    overlap_end_time = datetime.now() + timedelta(hours=2, minutes=30)
+    overlap_end_time = overlap_start_time + timedelta(hours=2, minutes=30)
 
     overlap_lesson = Lesson(id=2,name="Fondamenti di Informatica", start_time=overlap_start_time, end_time=overlap_end_time, teacher_id=standard_teacher.id, room_id=room_with_standard_capacity.id)
     teacher_2 = User(id=2,email="prova2@gmail.com",hashed_password="str",name="Marco",surname="Rossi",role=Role.TEACHER)
@@ -123,7 +123,7 @@ def test_delete_not_own_lesson():
 def test_fail_to_delete_started_lesson(standard_teacher, room_with_standard_capacity):
 
     current_start_time = datetime.now()
-    current_end_time = datetime.now() + timedelta(hours=2)
+    current_end_time = current_start_time + timedelta(hours=2)
 
     current_lesson = Lesson(id=1,name='Deep Learning',start_time=current_start_time,end_time=current_end_time,teacher_id=standard_teacher.id,room_id=room_with_standard_capacity)
 
