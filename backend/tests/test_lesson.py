@@ -44,21 +44,36 @@ def test_invalid_lesson_duration(room_with_standard_capacity, standard_teacher, 
     with pytest.raises(expected_exception):
         service.create(teacher=standard_teacher, lesson=invalid_time_lesson, room_id=room_with_standard_capacity.id)
 
+@pytest.mark.parametrize(
+        "overlap_start_time, overlap_end_time",
+        [
+            #la seconda lezione inizia prima ma finisce durante
+            (-30,60),
+            #la seconda inizia durante ma finisce dopo
+            (30,120),
+            #inzia e finisce durante la lezione
+            (0,60),
+            #stessi orari
+            (0,120)
+        ]
+)
 
+def test_create_time_overlap_lesson(room_with_standard_capacity,standard_teacher,not_started_lesson, overlap_start_time, overlap_end_time):
 
-def test_create_time_overlap_lesson(room_with_standard_capacity,standard_teacher, not_started_lesson):
-
-    #not_started_lesson e overlap_lesson hanno la stessa stanza
+    #not_started_lesson inizia fra un'ora e finisce fra 2 ore
     existing_lesson = not_started_lesson
 
-    overlap_start_time = datetime.now() + timedelta(hours=1, minutes=30)
-    overlap_end_time = overlap_start_time + timedelta(hours=2, minutes=30)
+    service = LessonService(existing_lesson=[existing_lesson])
 
-    overlap_lesson = Lesson(id=2,name="Fondamenti di Informatica", start_time=overlap_start_time, end_time=overlap_end_time, teacher_id=standard_teacher.id, room_id=room_with_standard_capacity.id)
+    base_start_time = not_started_lesson.start_time
+
+    overlap_lesson_start_time = base_start_time + timedelta(minutes=overlap_start_time)
+    overlap_lesson_end_time = overlap_lesson_start_time + timedelta(minutes=overlap_end_time)
+
+
+    overlap_lesson = Lesson(id=2,name="Fondamenti di Informatica", start_time=overlap_lesson_start_time, end_time=overlap_lesson_end_time, teacher_id=standard_teacher.id, room_id=room_with_standard_capacity.id)
     teacher_2 = User(id=2,email="prova2@gmail.com",hashed_password="str",name="Marco",surname="Rossi",role=Role.TEACHER)
 
-
-    service = LessonService(existing_lesson=[existing_lesson])
 
     with pytest.raises(OverLappingTimeLesson):
         service.create(teacher=teacher_2,lesson=overlap_lesson,room_id=room_with_standard_capacity.id)
