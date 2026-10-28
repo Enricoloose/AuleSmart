@@ -88,21 +88,31 @@ def test_teacher_booking_to_lesson(not_started_lesson, room_with_standard_capaci
     with pytest.raises(UnauthorizedRoleError):
         service.book(student=teacher, lesson=not_started_lesson, room=room_with_standard_capacity)
 
-def test_booking_to_started_lesson(room_with_standard_capacity,standard_student, standard_teacher):
+
+@pytest.mark.parametrize(
+        "minutes_from_start_time, expected_exception",
+        [
+            (-60,ExpiredLessonError),
+            (-1,ExpiredLessonError)
+        ]
+)
+
+def test_booking_to_started_lesson(room_with_standard_capacity,standard_student, standard_teacher, minutes_from_start_time, expected_exception):
 
     #Mi serve creare una lezione nel passato 
-    past_start_time = datetime.now() - timedelta(hours=1)
-    past_end_time = datetime.now()
+    past_start_time = datetime.now() + timedelta(minutes=minutes_from_start_time)
+    past_end_time = past_start_time + timedelta(hours=1)
     
     past_lesson = Lesson(id=1,name="Deep Learning",start_time=past_start_time,end_time=past_end_time,teacher_id=standard_teacher.id,room_id=room_with_standard_capacity.id)
 
     service = BookingService()
 
-    with pytest.raises(ExpiredLessonError):
+    with pytest.raises(expected_exception):
         service.book(student=standard_student, lesson=past_lesson, room=room_with_standard_capacity)
 
-def test_delete_already_started_lesson(standard_student,room_with_standard_capacity, standard_teacher):
 
+
+def test_delete_already_started_lesson(standard_student,room_with_standard_capacity, standard_teacher):
 
     future_start_time = datetime.now() + timedelta(minutes=29)
     future_end_time = future_start_time + timedelta(hours=2)
