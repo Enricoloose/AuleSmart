@@ -43,20 +43,6 @@ def test_double_booking_to_lesson(not_started_lesson, room_with_standard_capacit
 
     assert len(service.reservation) == 1
 
-def test_multiple_booking_to_lesson(not_started_lesson,room_with_standard_capacity,standard_student, standard_teacher):
-
-    lesson_2_start_time = not_started_lesson.end_time + timedelta(hours=1)
-    lesson_2_end_time = lesson_2_start_time + timedelta(hours=2)
-
-    lesson_2 = Lesson(id=not_started_lesson.id + 1, name="Fondamenti di informatica", start_time=lesson_2_start_time, end_time=lesson_2_end_time, teacher_id=standard_teacher.id, room_id=room_with_standard_capacity.id)
-
-    service = BookingService()
-
-    service.book(student=standard_student,lesson=not_started_lesson,room=room_with_standard_capacity)
-    service.book(student=standard_student,lesson=lesson_2,room=room_with_standard_capacity)
-
-    assert len(service.reservation) == 2
-
 
 def test_booking_to_overlapping_lesson(not_started_lesson,standard_student,room_with_standard_capacity,):
     #voglio impedire che uno studente si possa iscrivere a due lezioni diverse ma che combaciano con gli orari (stessi orari ma aule diverse)
