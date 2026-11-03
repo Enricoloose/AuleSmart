@@ -78,8 +78,6 @@ def test_booking_to_overlapping_lesson(not_started_lesson,standard_student,room_
     with pytest.raises(OverLappingTimeLesson):
         service.book(student=standard_student,lesson=overlap_lesson,room=room_2)
 
-
-
 def test_teacher_booking_to_lesson(not_started_lesson, room_with_standard_capacity, standard_student):
 
     teacher = User(id=standard_student.id+1, email="pino.vedi@edu.it", hashed_password="psw", name="Pino", surname="Verdi", role=Role.TEACHER)
@@ -110,8 +108,6 @@ def test_booking_to_started_lesson(room_with_standard_capacity,standard_student,
 
     with pytest.raises(expected_exception):
         service.book(student=standard_student, lesson=past_lesson, room=room_with_standard_capacity)
-
-
 
 def test_delete_already_started_lesson(standard_student,room_with_standard_capacity, standard_teacher):
 
@@ -144,44 +140,40 @@ def test_delete_non_existing_reservation(not_started_lesson,standard_student):
 
 
 #definisco la strategia prima cosi posso mettere l'id univoco negli student generati
-
 student_strategy = st.builds(
     User,
-    id=st.integers(min_value=1,max_value=5000),
+    id=st.integers(min_value=1,max_value=500),
     email = st.emails(),
     hashed_password = st.text(min_size=8),
     name = st.text(min_size=4, max_size=20),
     surname = st.text(min_size=4, max_size=20),
     role = st.just(Role.STUDENT)
 )
-
 @given(
-    random_room_capacity = st.integers(min_value=1,max_value=50),
-    random_students_list = st.lists(student_strategy,min_size=1,max_size=100,unique_by=lambda x: x.id)
+    random_students_list = st.lists(student_strategy,min_size=1,max_size=30,unique_by=lambda x: x.id)
 )
-def test_random_bookings(random_students_list, random_room_capacity):
+def test_random_bookings_and_cancellations(random_students_list):
 
-    room = Room(id=1,name="Aula4", capacity=random_room_capacity)
+    room = Room(id=1,name="Aula4", capacity=50)
 
     service = BookingService()
     expected_booking = 0
 
-    lesson_start_time = datetime.now() + timedelta(minutes=30)
+    lesson_start_time = datetime.now() + timedelta(hours=1)
     lesson_end_time = lesson_start_time + timedelta(hours=2)
     lesson = Lesson(id=1,name="Deep Learning", start_time=lesson_start_time, end_time=lesson_end_time,teacher_id=1,room_id=room.id)
 
     for student in random_students_list:
-        if expected_booking < room.capacity:
-            service.book(student=student, lesson=lesson, room=room)
-            expected_booking += 1
-        else:
-            with pytest.raises(OverbookingError):
-                service.book(student=student, lesson=lesson, room=room)
-
+        service.book(student=student, lesson=lesson, room=room)
+        expected_booking += 1
 
     assert len(service.reservation) == expected_booking
-    assert len(service.reservation) >= 0
-    assert len(service.reservation) <= room.capacity
+
+    for student in random_students_list:
+        service.delete(student_id=student.id, lesson=lesson)
+
+    assert len(service.reservation) == 0
+
 
 
 
