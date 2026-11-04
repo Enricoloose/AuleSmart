@@ -74,26 +74,26 @@ def test_teacher_booking_to_lesson(not_started_lesson, room_with_standard_capaci
         service.book(student=teacher, lesson=not_started_lesson, room=room_with_standard_capacity)
 
 
-@pytest.mark.parametrize(
-        "minutes_from_start_time, expected_exception",
-        [
-            (-60,ExpiredLessonError),
-            (-1,ExpiredLessonError)
-        ]
+@given(
+        minutes_from_start_time = st.integers(min_value=1,max_value=300)
 )
 
-def test_booking_to_started_lesson(room_with_standard_capacity,standard_student, standard_teacher, minutes_from_start_time, expected_exception):
+def test_booking_to_started_lesson(minutes_from_start_time):
+
+    room = Room(id=1,name="Aula5",capacity=50)
 
     #Mi serve creare una lezione nel passato 
-    past_start_time = datetime.now() + timedelta(minutes=minutes_from_start_time)
+    past_start_time = datetime.now() - timedelta(minutes=minutes_from_start_time)
     past_end_time = past_start_time + timedelta(hours=1)
     
-    past_lesson = Lesson(id=1,name="Deep Learning",start_time=past_start_time,end_time=past_end_time,teacher_id=standard_teacher.id,room_id=room_with_standard_capacity.id)
+    past_lesson = Lesson(id=1,name="Deep Learning",start_time=past_start_time,end_time=past_end_time,teacher_id=2,room_id=room.id)
+
+    student = User(id=1,email="pino.vedi@edu.unife.it",hashed_password="psw",name="Pino",surname="Verdi",role=Role.STUDENT)
 
     service = BookingService()
 
-    with pytest.raises(expected_exception):
-        service.book(student=standard_student, lesson=past_lesson, room=room_with_standard_capacity)
+    with pytest.raises(ExpiredLessonError):
+        service.book(student=student, lesson=past_lesson, room=room)
 
 @given(
         minutes_to_start_time = st.integers(min_value=0,max_value=29)
