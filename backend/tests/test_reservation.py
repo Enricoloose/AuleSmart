@@ -95,16 +95,22 @@ def test_booking_to_started_lesson(room_with_standard_capacity,standard_student,
     with pytest.raises(expected_exception):
         service.book(student=standard_student, lesson=past_lesson, room=room_with_standard_capacity)
 
-def test_delete_already_started_lesson(standard_student,room_with_standard_capacity, standard_teacher):
+@given(
+        minutes_to_start_time = st.integers(min_value=0,max_value=29)
+)
 
-    future_start_time = datetime.now() + timedelta(minutes=29)
+def test_delete_already_started_lesson(minutes_to_start_time):
+
+    future_start_time = datetime.now() + timedelta(minutes=minutes_to_start_time)
     future_end_time = future_start_time + timedelta(hours=2)
-    future_lesson = Lesson(id=2,name="Fondamenti di Informatica", start_time=future_start_time, end_time=future_end_time, teacher_id=standard_teacher.id, room_id=room_with_standard_capacity.id)
+    future_lesson = Lesson(id=2,name="Fondamenti di Informatica", start_time=future_start_time, end_time=future_end_time, teacher_id=2, room_id=1)
+
+    student = User(id=1,email="pino.vedi@edu.unife.it",hashed_password="psw",name="Pino",surname="Verdi",role=Role.STUDENT)
 
     service = BookingService()
 
     with pytest.raises(DeleteReservationError):
-        service.delete(standard_student.id, lesson = future_lesson)
+        service.delete(student_id=student.id,lesson=future_lesson)
 
 
 def test_success_to_delete_reservation(not_started_lesson,standard_student, room_with_standard_capacity):
@@ -160,6 +166,28 @@ def test_random_bookings_and_cancellations(random_students_list):
 
     assert len(service.reservation) == 0
 
+@given(
+        number_of_attemps = st.integers(min_value=2, max_value=50)
+)
+def test_multiple_double_booking(number_of_attemps):
+
+    room = Room(id=1,name="Aula4", capacity=50)
+
+    service = BookingService()
+
+    lesson_start_time = datetime.now() + timedelta(hours=1)
+    lesson_end_time = lesson_start_time + timedelta(hours=2)
+    lesson = Lesson(id=1,name="Deep Learning", start_time=lesson_start_time, end_time=lesson_end_time,teacher_id=1,room_id=room.id)
+
+    student = User(id=1,email="pino.vedi@edu.unife.it",hashed_password="psw",name="Pino",surname="Verdi",role=Role.STUDENT)
+
+    service.book(student=student, lesson=lesson, room=room)
+
+    for _ in range(number_of_attemps):
+        with pytest.raises(DoubleBookingError):
+            service.book(student=student, lesson=lesson, room=room)
+
+    assert len(service.reservation) == 1
 
 
 
