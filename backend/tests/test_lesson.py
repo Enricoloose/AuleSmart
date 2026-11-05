@@ -160,4 +160,3 @@ def test_fail_delete_not_existing_lesson(standard_teacher,room_with_standard_cap
     assert len(service.existing_lesson) == 1
 
 
-
